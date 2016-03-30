@@ -167,11 +167,7 @@ public class BookClient {
 
 		// Write Data
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(server))) {
-
-			for (Book nextBook : books) {
-				oos.writeObject(nextBook);
-			}
-
+			oos.writeObject(books); // Writing Books: TODO: Check if this works
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
