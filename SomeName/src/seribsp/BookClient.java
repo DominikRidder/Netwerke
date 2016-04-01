@@ -1,17 +1,13 @@
 package seribsp;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
-
-import javax.swing.plaf.synth.SynthSeparatorUI;
 
 public class BookClient {
 
@@ -33,7 +29,7 @@ public class BookClient {
 			System.out.println(" (4) Delete Book");
 			System.out.println(" (5) Save books in file");
 			input = scanner.nextInt();
-			scanner.nextLine(); // read \n
+			scanner.nextLine(); // read "\n"
 			switch (input) {
 			case 1:
 				loadBooks(bookFile);
@@ -61,6 +57,7 @@ public class BookClient {
 	 * @param server
 	 *            The File, that is used and returned, containing the Books.
 	 */
+	@SuppressWarnings("unchecked")
 	public static void loadBooks(File server) {
 		books.clear();
 		System.out.print("Server name: ");
@@ -72,13 +69,9 @@ public class BookClient {
 		}
 
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(server))) {
-			while (true) {
-				Book nextBook = (Book) ois.readObject();
-				books.add(nextBook);
-			}
-
-		} catch (EOFException e) {
-			// exit point
+			// Solution without Exception
+			books = (ArrayList<Book>) ois.readObject();
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -89,11 +82,12 @@ public class BookClient {
 	/**
 	 * Writes out a the current loaded Books as a list of csv values.
 	 * 
-	 * Therefore is calling the toString method of Book class.
 	 */
 	public static void showBooks() {
+		String format = "%32s%32s%32s\n";
+		System.out.format(format, "ISBN NR","Titel","Author");
 		for (Book b : books) {
-			System.out.println(b);
+			System.out.format(format, b.getISBN(), b.getTitle(), b.getAuthor());
 		}
 	}
 
@@ -104,11 +98,13 @@ public class BookClient {
 	public static void addBook() {
 		System.out.print("ISBN Nummer: ");
 		String isbn = scanner.nextLine();
+		System.out.print("Title: ");
+		String title = scanner.nextLine();
 		System.out.print("Vorname: ");
 		String surname = scanner.nextLine();
 		System.out.print("Nachname: ");
 		String name = scanner.nextLine();
-
+		
 		boolean incollection = false;
 
 		for (Book b : books) {
@@ -122,7 +118,7 @@ public class BookClient {
 			System.out.println("Hinzufuegen fehlgeschlagen.");
 			System.out.println("Die ISBN Nr wurde bereits verwendet.");
 		} else {
-			books.add(new Book(isbn, surname, name));
+			books.add(new Book(isbn, title, surname, name));
 		}
 	}
 
@@ -167,7 +163,7 @@ public class BookClient {
 
 		// Write Data
 		try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(server))) {
-			oos.writeObject(books); // Writing Books: TODO: Check if this works
+			oos.writeObject(books);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
