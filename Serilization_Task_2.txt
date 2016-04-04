@@ -1,0 +1,22 @@
+2) Dateiaustausch
+
+
+o "Worauf muss bei der Interoperabilitaet geachtet werden?"
+
+  Die Gespeicherte Klasse muss bei beiden Applicationen identisch
+  implementiert sein (gleicher Name, Attribute, Package...).
+
+  
+o "Welcher Programmbestandteil legt das "Protokoll" fest?"
+
+  - Was man mit dem ObjectOutputWriter ausschreibt
+    Bsp.: Ob man eine implementation von Liste 
+          in die Datei schreibt oder jedes Buch
+          einzelnd.
+  - Die Verwendeten Klassen Book und Author (und ggf. ArrayList)
+
+  
+  
+o Bemerkungen:
+
+Das Austauschen der Datei, habe ich nicht mehr testen.
