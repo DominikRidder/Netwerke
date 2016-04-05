@@ -66,7 +66,7 @@ public class BookClient {
 	public static void loadBooks(File server) {
 		System.out.println("--- Load books from file ---");
 		BookClient.printKnownServers();
-		
+
 		// ### Get Server ###
 		System.out.print("\nServer name: ");
 		server = new File(scanner.nextLine());

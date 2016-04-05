@@ -17,6 +17,9 @@ public class Book implements Serializable {
 	private String title;
 	private Author author;
 	
+	protected Book() {
+		author = new Author("some", "name");
+	}
 	
 	public Book(String isbn, String title, String surname, String name) {
 	    this(isbn, title, new Author(surname, name));
@@ -28,6 +31,10 @@ public class Book implements Serializable {
 		this.author = author;
 	}
 
+	public void setISBN(String isbn) {
+		this.isbn = isbn;
+	}
+	
 	public String getISBN() {
 		return isbn;
 	}

@@ -2,21 +2,38 @@
  * The BookClient provides a book server dialog, that is started with the main method.
  * 
  * @author Dominik Ridder
+ * 
+ * ##################### QUELLTEXT Aufgaben Loesung ##########################3
+ * 
+ * 
+ * o "Tauschen Sie auch hier mit Ihrer Nachbarin oder Ihrem Nachbarn die JSON-Datei aus."
+ * 
+ * Konnte ich jetzt nicht mehr machen.
+ * 
+ * 
+ * o "Was sind die Vorteile von JSON?"
+ * 
+ * - JSON benutzt ein Speicherformat das sich auch von anderen Programmiersprachen aus lesen
+ *   und schreiben laesst. Der Aufbau der Datei ist unabhaengig von Java.
+ * 
+ * - Zudem koennte man zum Debuggen die Datei lesen, da sie (falls formatiert) in einer Menschlich
+ *   lesbaren form ist.
+ * 
+ * - Die fuer die Klasse zum Laden noetigen elemente lassen sich aus der Datei wiedergewinnen.
  */
 package exp_seri;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import flexjson.JSONDeserializer;
+import flexjson.JSONException;
 import flexjson.JSONSerializer;
 
 public class BookClient {
@@ -67,7 +84,6 @@ public class BookClient {
 	 * @param server
 	 *            The file, that contains the books.
 	 */
-	@SuppressWarnings("unchecked")
 	public static void loadBooks(File server) {
 		System.out.println("--- Load books from file ---");
 		BookClient.printKnownServers();
@@ -90,10 +106,15 @@ public class BookClient {
 		// ### Load books ###
 		try (BufferedReader br = new BufferedReader(new FileReader(server))) {
 
-			JSONDeserializer<ArrayList<Book>> deserializer = new JSONDeserializer<ArrayList<Book>>();
-			books = new ArrayList<Book>(deserializer.use(null, books.getClass()).deserialize(br));
+			JSONDeserializer<Book> deserializer = new JSONDeserializer<Book>();
+			books.clear();
+			while (true) {
+				books.add(deserializer.use(null, Book.class).deserialize(br));
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (JSONException e) {
+
 		}
 	}
 
@@ -211,10 +232,11 @@ public class BookClient {
 		}
 
 		// ### Save books ###
-		try (ObjectOutputStream oos = new ObjectOutputStream(
-				new FileOutputStream(server))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(server))) {
 			JSONSerializer serializer = new JSONSerializer();
-			oos.writeObject(serializer.serialize(books));
+			for (Book b : books) {
+				bw.write(serializer.serialize(b));
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

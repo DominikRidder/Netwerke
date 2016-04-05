@@ -16,12 +16,23 @@ public class Author implements Serializable {
 	private String name;
 	private String surname;
 	
+	protected Author() {
+		// For JSON
+	}
 	
 	public Author(String surname, String name) {
 		this.name = name;
 		this.surname = surname;
 	}
-
+	
+	public String getName() {
+		return name;
+	}
+	
+	public String getSurname() {
+		return surname;
+	}
+	
 	public String toString() {
 		return name+", "+surname;
 	}
