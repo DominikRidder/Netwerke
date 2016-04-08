@@ -17,7 +17,7 @@ public class Statistic {
 		counter++;
 		totalsize += wordlength;
 		longest = wordlength > longest ? wordlength : longest;
-		longest = wordlength < shortest ? wordlength : shortest;
+		shortest = wordlength < shortest ? wordlength : shortest;
 	}
 	
 	public String toString() {

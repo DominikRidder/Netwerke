@@ -11,11 +11,12 @@ class TCPServer {
 	}
 
 	public static void startclient() throws Exception {
-		ServerSocket welcomeSocket = new ServerSocket(13337);
-		while (true) {
-			Socket connectionSocket = welcomeSocket.accept();
-			Connection connect = new Connection(connectionSocket);
-			connect.start();
+		try (ServerSocket welcomeSocket = new ServerSocket(13337)) {
+			while (true) {
+				Socket connectionSocket = welcomeSocket.accept();
+				Connection connect = new Connection(connectionSocket);
+				connect.start();
+			}
 		}
 	}
 

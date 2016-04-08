@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Connection extends Thread {
-	static List<Statistic> allstatistic = Collections.synchronizedList(new ArrayList<Statistic>());
+	static List<Connection> connections = Collections.synchronizedList(new ArrayList<Connection>());
 
 	private Socket connectionSocket;
 	private Statistic statistic;
@@ -16,7 +16,7 @@ public class Connection extends Thread {
 		this.connectionSocket = connectionSocket;
 		statistic = new Statistic();
 
-		allstatistic.add(statistic);
+		connections.add(this);
 	}
 
 	public void run() {
@@ -27,8 +27,8 @@ public class Connection extends Thread {
 		try {
 			DataInputStream inFromClient = new DataInputStream(connectionSocket.getInputStream());
 			DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-
-			while (clientSentence.equals("exit")) {
+			
+			while (!clientSentence.equals("exit")) {
 				try {
 					clientSentence = inFromClient.readUTF();
 				} catch (EOFException e) {
@@ -66,12 +66,12 @@ public class Connection extends Thread {
 	
 	public String getShowAllStat() {
 		StringBuilder msg = new StringBuilder();
-		for (Statistic stat : allstatistic) {
-			msg.append("IP: "+connectionSocket.getInetAddress().getHostAddress());
+		for (Connection c : connections) {
+			msg.append("IP: "+c.connectionSocket.getInetAddress().getHostAddress());
 			msg.append("\n");
-			msg.append("Port: "+connectionSocket.getPort());
+			msg.append("Port: "+c.connectionSocket.getPort());
 			msg.append("\n");
-			msg.append(stat);
+			msg.append(c.getShowStat());
 			msg.append("\n\n\n");
 		}
 		return msg.toString();
