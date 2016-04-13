@@ -25,8 +25,8 @@ public class Statistic {
 		
 		sb.append("Totalsize: "+totalsize);
 		sb.append("\nCounter: "+counter);
-		sb.append("\nLongest: "+longest);
-		sb.append("\nShortest: "+shortest);
+		sb.append("\nLongest: "+(counter == 0 ? "--" : ""+longest));
+		sb.append("\nShortest: "+(counter == 0 ? "--" : ""+shortest));
 		
 		return sb.toString();
 	}
