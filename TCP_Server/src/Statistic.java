@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 public class Statistic {
 
 	private int totalsize = 0;

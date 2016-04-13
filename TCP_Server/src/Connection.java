@@ -7,8 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Connection extends Thread {
-	static List<Connection> connections = Collections
-			.synchronizedList(new ArrayList<Connection>());
+	private static List<Connection> connections = Collections.synchronizedList(new ArrayList<Connection>());
 
 	private Socket connectionSocket;
 	private Statistic statistic;
@@ -25,13 +24,12 @@ public class Connection extends Thread {
 	public void run() {
 		String clientSentence = "";
 		String answer = "";
+		String command = "";
 		String trailer = null;
 
 		try {
-			inFromClient = new DataInputStream(
-					connectionSocket.getInputStream());
-			outToClient = new DataOutputStream(
-					connectionSocket.getOutputStream());
+			inFromClient = new DataInputStream(connectionSocket.getInputStream());
+			outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
 			while (!clientSentence.equals("exit")) {
 				try {
@@ -41,31 +39,31 @@ public class Connection extends Thread {
 					continue;
 				}
 
-				switch (clientSentence) {
+				// Create message
+				command = clientSentence.split("[ \n]")[0];
+
+				switch (command) {
 				case "showstat":
 					answer = getShowStat();
 					break;
 				case "showallstat":
 					answer = getShowAllStat();
 					break;
-				default:
-					if (clientSentence.startsWith("broadcast")) {
-						answer = clientSentence.substring("broadcast".length());
-						for (Connection c : connections) {
-							if (!this.equals(c)) {
-								c.outToClient.writeUTF(answer);
-							}
+				case "broadcast":
+					answer = clientSentence.substring("broadcast".length() + 1);
+					for (Connection c : connections) {
+						if (!this.equals(c)) {
+							c.outToClient.writeUTF(answer);
 						}
-					} else {
-						trailer = "(IP = "
-								+ connectionSocket.getInetAddress()
-										.getHostAddress() + ", Port = "
-								+ connectionSocket.getPort() + ") ";
-						answer = trailer + clientSentence.toUpperCase() + '\n';
 					}
 					break;
+				default:
+					trailer = "(IP = " + connectionSocket.getInetAddress().getHostAddress() + ", Port = "
+							+ connectionSocket.getPort() + ") ";
+					answer = trailer + clientSentence.toUpperCase() + '\n';
 				}
 
+				// Send message
 				outToClient.writeUTF(answer);
 				statistic.record(clientSentence);
 			}
@@ -82,8 +80,7 @@ public class Connection extends Thread {
 	public String getShowAllStat() {
 		StringBuilder msg = new StringBuilder();
 		for (Connection c : connections) {
-			msg.append("IP: "
-					+ c.connectionSocket.getInetAddress().getHostAddress());
+			msg.append("IP: " + c.connectionSocket.getInetAddress().getHostAddress());
 			msg.append("\n");
 			msg.append("Port: " + c.connectionSocket.getPort());
 			msg.append("\n");

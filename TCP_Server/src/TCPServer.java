@@ -1,6 +1,3 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -11,7 +8,7 @@ class TCPServer {
 	}
 
 	public static void startclient() throws Exception {
-		try (ServerSocket welcomeSocket = new ServerSocket(13337)) {
+		try (ServerSocket welcomeSocket = new ServerSocket(24800)) {
 			while (true) {
 				Socket connectionSocket = welcomeSocket.accept();
 				Connection connect = new Connection(connectionSocket);
