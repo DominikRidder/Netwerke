@@ -25,12 +25,13 @@ public class Connection extends Thread {
 		String clientSentence = "";
 		String answer = "";
 		String command = "";
-		String trailer = null;
 
 		try {
 			inFromClient = new DataInputStream(connectionSocket.getInputStream());
 			outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
+			outToClient.writeUTF(welcomeMessage());
+			
 			while (!clientSentence.equals("exit")) {
 				try {
 					clientSentence = inFromClient.readUTF();
@@ -39,9 +40,11 @@ public class Connection extends Thread {
 					continue;
 				}
 
-				// Create message
-				command = clientSentence.split("[ \n]")[0];
+				System.out.println("FROM USER: \n\t"+clientSentence.replace("\n", "\n\t"));
+				
+				command = clientSentence.split("[ \n]")[0].toLowerCase();
 
+				// Create message
 				switch (command) {
 				case "showstat":
 					answer = getShowStat();
@@ -58,9 +61,7 @@ public class Connection extends Thread {
 					}
 					break;
 				default:
-					trailer = "(IP = " + connectionSocket.getInetAddress().getHostAddress() + ", Port = "
-							+ connectionSocket.getPort() + ") ";
-					answer = trailer + clientSentence.toUpperCase() + '\n';
+					answer = getConnectionInfo() + clientSentence + '\n';
 				}
 
 				// Send message
@@ -73,6 +74,15 @@ public class Connection extends Thread {
 		connections.remove(this);
 	}
 
+	private String welcomeMessage() {
+		return "Welcome to the Server! Usefull commands:\no showstat\no showallstat\no broadcast";
+	}
+	
+	private String getConnectionInfo() {
+		return "(IP = " + connectionSocket.getInetAddress().getHostAddress() + ", Port = "
+				+ connectionSocket.getPort() + ") ";
+	}
+	
 	public String getShowStat() {
 		return statistic.toString();
 	}
@@ -80,9 +90,7 @@ public class Connection extends Thread {
 	public String getShowAllStat() {
 		StringBuilder msg = new StringBuilder();
 		for (Connection c : connections) {
-			msg.append("IP: " + c.connectionSocket.getInetAddress().getHostAddress());
-			msg.append("\n");
-			msg.append("Port: " + c.connectionSocket.getPort());
+			msg.append(c.getConnectionInfo());
 			msg.append("\n");
 			msg.append(c.getShowStat());
 			msg.append("\n\n\n");

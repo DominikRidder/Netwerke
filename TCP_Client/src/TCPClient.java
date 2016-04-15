@@ -1,49 +1,49 @@
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.DataInputStream;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Scanner;
 
 class TCPClient {
-	
+
+	boolean alreadyrunning = false;
+
 	public static void main(String[] argv) throws Exception {
-		new TCPClient().start(argv[0], Integer.parseInt(argv[1]));
+		TCPClient client = new TCPClient();
+		client.start(argv[0], Integer.parseInt(argv[1]));
 	}
 
-	public void start(String ip, int port) throws Exception {
-		String sentence;
+	public void start(String ip, int port) {
+		String sentence = "";
+		Socket serverSocket = null;
+		DataOutputStream outToServer = null;
 
-		Scanner inFromUser = new Scanner(System.in);
-		Socket serverSocket = new Socket(ip, port);
-		DataOutputStream outToServer = new DataOutputStream(serverSocket.getOutputStream());
+		if (alreadyrunning) {
+			System.out.println("The Client is already started.");
+			return;
+		}
 
-		ServerListener serverl = new ServerListener(serverSocket);
-		serverl.start();
+		try (Scanner inFromUser = new Scanner(System.in)) {
+			alreadyrunning = true;
+			System.out.println("Neuen Client gestartet");
+			
+			serverSocket = new Socket(ip, port);
+			outToServer = new DataOutputStream(serverSocket.getOutputStream());
 
-		System.out.println("Geben sie eine nachricht ein, die an den Server geschickt werden soll. (Exit beenden den Client)");
-		
-		while (true) {
-			System.out.println("start loop");
-			if (inFromUser.hasNextLine()){
+			ServerListener serverl = new ServerListener(serverSocket);
+			serverl.start();
+
+			while (!sentence.toLowerCase().contains("exit")) { // not the wanted solution
 				sentence = inFromUser.nextLine();
-			}else{
-				if(serverSocket.isClosed()){
-					break;
-				}else {
-					System.out.println("wait");
-					Thread.sleep(30);
-					continue;
-				}
+
+				outToServer.writeUTF(sentence);
 			}
 
-			
-			outToServer.writeUTF(sentence);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			System.out.println("Client beendet");
+			alreadyrunning = false;
 		}
-		
-		inFromUser.close();
-		System.out.println("client dead");
 	}
 }

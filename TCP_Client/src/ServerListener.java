@@ -1,8 +1,6 @@
-import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 
 public class ServerListener extends Thread {
 	private Socket serverSocket;
@@ -14,11 +12,13 @@ public class ServerListener extends Thread {
 	public void run() {
 		String modifiedSentence = "";
 
+		System.out.println("ServerListener gestarted");
+		
 		try {
 			DataInputStream inFromServer = new DataInputStream(serverSocket.getInputStream());
-			while (!modifiedSentence.contains("EXIT")) {
+			while (!modifiedSentence.toLowerCase().contains("exit")) {
 				modifiedSentence = inFromServer.readUTF();
-				System.out.println("FROM SERVER: " + modifiedSentence);
+				System.out.println("FROM SERVER: \n\t" + modifiedSentence.replace("\n", "\n\t"));
 			}
 		} catch (Exception e) {
 
@@ -29,5 +29,7 @@ public class ServerListener extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		System.out.println("ServerListener beendet");
 	}
 }
