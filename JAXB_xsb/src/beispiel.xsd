@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<xs:schema id="Beispiel" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" attributeFormDefault="unqualified"
+	xmlns:tns="http://www.fh-aachen.de/">
+	<xs:simpleType name="BeispielAttribut" final="restriction">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="TYPE1" />
+			<xs:enumeration value="TYPE2" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="Beispielobjekt">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="data1" type="xs:string" minOccurs="1"
+					maxOccurs="1" />
+				<xs:element name="data2" type="xs:int" minOccurs="1"
+					maxOccurs="1" />
+			</xs:sequence>
+			<xs:attribute name="type" type="BeispielAttribut" />
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
