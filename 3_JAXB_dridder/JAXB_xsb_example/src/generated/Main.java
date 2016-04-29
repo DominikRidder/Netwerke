@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 public class Main {
 	
@@ -16,7 +15,7 @@ public class Main {
 		JAXBContext jaxbContext = JAXBContext.newInstance(Beispielobjekt.class);
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+//		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		
 		Beispielobjekt beispielobjekt = objectFactory.createBeispielobjekt();
 		beispielobjekt.setData1("hallo");

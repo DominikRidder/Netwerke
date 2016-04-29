@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Scanner;
@@ -11,7 +8,6 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 import generated.EchoMessage;
 import generated.EchoMessageType;
@@ -42,28 +38,28 @@ class TCPClient {
 
 		msgOut = objectFactory.createEchoMessage();
 
-		Scanner inFromUser = new Scanner(System.in);
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader((System.in)));
 		Socket serverSocket = new Socket(ip, port);
-		DataOutputStream outToServer = new DataOutputStream(serverSocket.getOutputStream());
+		DataOutputStream outToServer = new DataOutputStream(
+				serverSocket.getOutputStream());
 
 		ServerListener serverl = new ServerListener(serverSocket);
 		serverl.start();
 
-		System.out.println(
-				"Geben sie eine nachricht ein, die an den Server geschickt werden soll. (Exit beenden den Client)");
+		System.out
+				.println("Geben sie eine nachricht ein, die an den Server geschickt werden soll. (Exit beenden den Client)");
 
 		while (true) {
-			if (inFromUser.hasNextLine()) {
+			if (inFromUser.ready()) {
 				msgOut = objectFactory.createEchoMessage();
-				sentence = inFromUser.nextLine();
-				msgOut.setType(EchoMessageType.DEFAULT);
+				sentence = inFromUser.readLine();
+
 				String command = sentence.split("[ \n]")[0];
-				for (EchoMessageType next : EchoMessageType.values()) {
-					if (next.value().toLowerCase().equals(command.toLowerCase())) {
-						msgOut.setType(next);
-						sentence = sentence.substring(next.value().length());
-						break;
-					}
+				msgOut.setType(getEchoMessageType(command));
+
+				if (!msgOut.getType().equals(EchoMessageType.DEFAULT)) {
+					sentence = sentence.substring(msgOut.getType().value()
+							.length());
 				}
 
 				msgOut.setContent(sentence);
@@ -83,5 +79,17 @@ class TCPClient {
 		}
 
 		inFromUser.close();
+	}
+
+	public EchoMessageType getEchoMessageType(String command) {
+		EchoMessageType type = null;
+
+		try {
+			type = EchoMessageType.valueOf(command.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			type = EchoMessageType.DEFAULT;
+		}
+
+		return type;
 	}
 }
