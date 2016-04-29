@@ -7,8 +7,6 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
-import bsp.OwnStackInterface;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,6 +27,8 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 	private JTextArea userList;
 	private JTextField inputField;
 	private JTextArea textArea;
+
+	private boolean newline = false; // No newline symbol at the first write
 
 	private ChatClient(String serverAddress) {
 		// Setup GUI
@@ -91,7 +91,8 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 		centerPanel.setBorder(centerPanelBorder0);
 
 		JScrollPane jScrollPane = new JScrollPane();
-		jScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		jScrollPane
+				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
 		textArea = new JTextArea();
 		Border textAreaBorder0 = new EmptyBorder(2, 2, 2, 2);
@@ -113,8 +114,8 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 		this.addWindowListener(new MyWindowListener());
 		try {
 			UnicastRemoteObject.exportObject(this, ChatClient.callbackPort);
-//			serverObject = (IChatServer) Naming.lookup("rmi://localhost/queue");
-			serverObject = (IChatServer) Naming.lookup("rmi://134.94.12.43/queue");
+			serverObject = (IChatServer) Naming.lookup("rmi://" + serverAddress
+					+ "/chatServer");
 		} catch (Exception e) {
 			System.out.println("Exception" + e);
 			e.printStackTrace();
@@ -125,26 +126,37 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 	 * Callback-Methode: wird vom Server aufgerufen, wenn jemand eine Nachricht
 	 * verschickt
 	 */
-	public void receiveChat(String userID, String message) throws RemoteException {
-		textArea.append("\n" + userID + ":" + message);
+	public void receiveChat(String userID, String message)
+			throws RemoteException {
+		addToChat(userID + ": " + message);
 	}
 
 	/**
 	 * Callback-Methode: wird vom Server aufgerufen, wenn es einen neuen
 	 * Benutzer gibt
 	 */
-	public void receiveUserLogin(String userID, Object[] users) throws RemoteException {
+	public void receiveUserLogin(String userID, Object[] users)
+			throws RemoteException {
 		UpdateUserList(users);
-		textArea.append("\n<User: " + userID + " entered the Chat!>");
+		addToChat(userID + " entered the Chat!");
 	}
 
 	/**
 	 * Callback-Methode: wird vom Server aufgerufen, wenn ein Benutzer das
 	 * System verlaesst
 	 */
-	public void receiveUserLogout(String userID, Object[] users) throws RemoteException {
+	public void receiveUserLogout(String userID, Object[] users)
+			throws RemoteException {
 		UpdateUserList(users);
-		textArea.append("\n<User: " + userID + " left the Chat.>");
+		addToChat(userID + " left the Chat.");
+	}
+
+	/**
+	 * Callback-Methode: wird vom Server aufgerufen, wenn ein Benutzer den
+	 * besitzer des Callbacks anfluestern will
+	 */
+	public void whisper(String fromID, String message) throws RemoteException {
+		addToChat("(" + fromID + " fluestert: " + message + ")");
 	}
 
 	public static void main(String[] args) {
@@ -179,7 +191,8 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 
 	private class LoginMenuItemListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			String name = JOptionPane.showInputDialog(ChatClient.this, "Please enter a nickname.", "LOGIN",
+			String name = JOptionPane.showInputDialog(ChatClient.this,
+					"Please enter a nickname.", "LOGIN",
 					JOptionPane.PLAIN_MESSAGE);
 			try {
 				// fuehre Login durch
@@ -190,7 +203,8 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 					loginMenuItem.setEnabled(false);
 					logoutMenuItem.setEnabled(true);
 				} else {
-					textArea.setText("\nThis name is already in use." + "\n" + "Please choose another name.\n\n");
+					textArea.setText("\nThis name is already in use." + "\n"
+							+ "Please choose another name.\n\n");
 					loginMenuItem.setEnabled(true);
 				}
 			} catch (Exception ex) {
@@ -218,17 +232,33 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 
 	private class InputFieldListener implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
+			String whisperMessage = null;
+			String[] messageParts = null;
 			String message = inputField.getText();
 			if (message.length() > 0) {
 				try {
-					if (message.startsWith("\\pn ")) {
+					if (message.startsWith("\\pn ")) { // pn
 						message = message.substring("\\pn ".length());
-						String[] messageParts = message.split(" ", 2);
-						boolean userrecived = serverObject.pn(userName, messageParts[0], messageParts[1]);
-						if (!userrecived) {
-							textArea.append("\n!Fehler: User ist nicht bekannt.");
+						messageParts = message.split(" ", 2);
+
+						if (messageParts.length == 0) {
+							addToChat("Error: No User specified");
+						} else if (messageParts.length == 1) {
+							whisperMessage = ""; // Empty whisper
+						} else {
+							whisperMessage = messageParts[1];
 						}
-					} else {
+
+						if (whisperMessage != null) {
+							boolean userrecived = serverObject.pn(userName,
+									messageParts[0], whisperMessage);
+							if (!userrecived) {
+								addToChat("Error: Unknown User.");
+							}
+						}
+					} else if (message.startsWith("\\")) { // Other Commands
+						addToChat("Error: Unkonw Command.");
+					} else {                               // Chat
 						serverObject.chat(userName, message);
 					}
 				} catch (Exception ex) {
@@ -249,7 +279,11 @@ public class ChatClient extends JFrame implements IChatClientCallback {
 		userList.setText(userliststr.toString());
 	}
 
-	public void whisper(String fromID, String message) throws RemoteException {
-		textArea.append("\n(" + fromID + " fluestert: " + message + ")");
+	private void addToChat(String message) {
+		if (newline) {
+			textArea.append("\n");
+		}
+		textArea.append(message);
+		newline = true;
 	}
 }

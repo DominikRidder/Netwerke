@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import bsp.OwnStackImplementation;
 import client.IChatClientCallback;
 
 public class ChatServerImpl extends UnicastRemoteObject implements IChatServer {
@@ -25,7 +24,8 @@ public class ChatServerImpl extends UnicastRemoteObject implements IChatServer {
 		users = Collections.synchronizedMap(callbackHashMap);
 	}
 
-	public boolean login(String userID, IChatClientCallback receiver) throws RemoteException {
+	public boolean login(String userID, IChatClientCallback receiver)
+			throws RemoteException {
 		if (users.containsKey(userID)) {
 			return false;
 		}
@@ -62,7 +62,7 @@ public class ChatServerImpl extends UnicastRemoteObject implements IChatServer {
 	public static void main(String[] args) {
 		try {
 			LocateRegistry.createRegistry(registryPort);
-			Naming.bind("rmi://localhost/queue", new ChatServerImpl());
+			Naming.bind("rmi://localhost/chatServer", new ChatServerImpl());
 			System.out.println("ChatServer ready");
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -71,7 +71,8 @@ public class ChatServerImpl extends UnicastRemoteObject implements IChatServer {
 	}
 
 	@Override
-	public boolean pn(String fromID, String toID, String message) throws RemoteException {
+	public boolean pn(String fromID, String toID, String message)
+			throws RemoteException {
 		if (users.containsKey(toID)) {
 			users.get(toID).whisper(fromID, message);
 			return true;
