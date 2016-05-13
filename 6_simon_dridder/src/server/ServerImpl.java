@@ -12,7 +12,7 @@ import enums.State;
 @SimonRemote
 public class ServerImpl implements ServerInterface {
 
-	static final int EMPTY = 0;
+	static final int NONE = 0;
 	static final int HUMAN = 1;
 	static final int COMPUTER = 2;
 
@@ -28,6 +28,20 @@ public class ServerImpl implements ServerInterface {
 	@Override
 	public String getStringBoard() {
 		StringBuilder board_str = new StringBuilder();
+		
+		// First creating a String like:
+		//
+		//    0 1 2
+		//    0 0 0
+		//    1 0 1
+		//
+		// And then replacing the Numbers with the String
+		// Representation:
+		//
+		//    - x o
+		//    - - -
+		//    x - o
+		
 		for (int i = 0; i < board.length; i++) {
 			for (int j = 0; j < board[0].length; j++) {
 				board_str.append(board[i][j]);
@@ -37,28 +51,27 @@ public class ServerImpl implements ServerInterface {
 		}
 
 		return board_str.toString().replace(Character.forDigit(HUMAN, 10), 'x')
-				.replace(Character.forDigit(COMPUTER, 10), 'o').replace("0", "-");
+				.replace(Character.forDigit(COMPUTER, 10), 'o')
+				.replace("0", "-");
 	}
 
 	@Override
 	public State place(int row, int column) {
-		if (row > 2 || column > 2 || row < 0 || column < 0) {
-			return getState();
-		}
-		
-		if (board[row][column] != EMPTY) {
-			return State.FIELD_NOT_EMPTY;
-		}
-		board[row][column] = HUMAN;
+		if (getState() == State.NOT_DONE) { // game already over?
+			if (row > 2 || column > 2 || row < 0 || column < 0) { // position in
+																	// grid?
+				return getState();
+			}
 
-		if (getState() == State.NOT_DONE) {
-			int i, j;
-			do {
-				i = (int) (Math.random() * 3);
-				j = (int) (Math.random() * 3);
-			} while (board[i][j] != EMPTY);
+			if (board[row][column] != NONE) { // position empty?
+				return State.FIELD_NOT_EMPTY;
+			}
 
-			board[i][j] = COMPUTER;
+			board[row][column] = HUMAN;
+
+			if (getState() == State.NOT_DONE) { // if NOT_DONE: placeAI
+				placeAI();
+			}
 		}
 
 		return getState();
@@ -66,7 +79,7 @@ public class ServerImpl implements ServerInterface {
 
 	@Override
 	public State getState() {
-		int winner = EMPTY;
+		int winner = NONE;
 		boolean draw = false;
 
 		// Check rows
@@ -80,7 +93,7 @@ public class ServerImpl implements ServerInterface {
 		}
 
 		// Check Columns
-		if (winner == EMPTY) {
+		if (winner == NONE) {
 			column: for (int i = 0; i < board[0].length; i++) {
 				for (int j = 0; j < board.length - 1; j++) {
 					if (board[j][i] != board[j + 1][i]) {
@@ -92,7 +105,7 @@ public class ServerImpl implements ServerInterface {
 		}
 
 		// Check Diagonal
-		if (winner == EMPTY) {
+		if (winner == NONE) {
 			if (board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
 				winner = board[1][1];
 			} else if (board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
@@ -101,7 +114,7 @@ public class ServerImpl implements ServerInterface {
 		}
 
 		// Check Draw
-		if (winner == EMPTY) {
+		if (winner == NONE) {
 			int check_draw = board[0][0];
 
 			if (check_draw == 0) {
@@ -127,7 +140,7 @@ public class ServerImpl implements ServerInterface {
 		case HUMAN:
 			return State.WINNER_HUMAN;
 		case COMPUTER:
-			return State.WINNER_KI;
+			return State.WINNER_AI;
 		default:
 			return State.NOT_DONE;
 		}
@@ -145,4 +158,13 @@ public class ServerImpl implements ServerInterface {
 		}
 	}
 
+	private void placeAI() {
+		int i, j;
+		do {
+			i = (int) (Math.random() * 3);
+			j = (int) (Math.random() * 3);
+		} while (board[i][j] != NONE);
+
+		board[i][j] = COMPUTER;
+	}
 }

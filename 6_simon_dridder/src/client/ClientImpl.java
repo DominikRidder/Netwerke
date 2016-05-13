@@ -14,45 +14,72 @@ import server.ServerInterface;
 @SimonRemote
 public class ClientImpl implements ClientCallbackInterface {
 
+	Lookup nameLookup;
+	ServerInterface server;
+
 	public static void main(String[] args) {
-		new ClientImpl();
+		ClientImpl client = new ClientImpl();
+		client.runGame();
 	}
 
-	public ClientImpl() {
-		Lookup nameLookup;
-		Scanner sc;
-		
+	public void runGame() {
+
+		if (connectToServer()) { // Connection to Server worked
+			
+			System.out.println("Enter a Number from 1-9 to set a Turn.\n");
+			System.out.println("1 2 3");
+			System.out.println("4 5 6");
+			System.out.println("7 8 9\n");
+
+			gameLoop();
+
+			System.out.println(server.getState().toString().replace("_", ": "));
+			nameLookup.release(server);
+		} else {
+			System.out.println("ERROR: Could not connect to the Server.");
+		}
+	}
+
+	private boolean connectToServer() {
+		boolean connected = false;
+
 		try {
 			nameLookup = Simon.createNameLookup("localhost");
-//			nameLookup = Simon.createNameLookup("134.94.12.43");
-			ServerInterface server = (ServerInterface) nameLookup.lookup("server");
+			server = (ServerInterface) nameLookup.lookup("server");
 			server.login(this);
-			sc = new Scanner(System.in);
-			System.out.println("Enter a Number from 1-9 to set a Turn.\n");
-			System.out.println(server.getStringBoard());
-			
-			while(server.getState() == State.NOT_DONE) {
-				int row, column, num;
-				do{
-					System.out.println("Enter a Turn");
-					num = Integer.parseInt(sc.nextLine().trim());
-					row = (num-1)/3;
-					column = (num-1)%3;
 
-				}while(server.place(row, column) == State.FIELD_NOT_EMPTY);
-				System.out.println(server.getStringBoard());
-			}
-			
-			System.out.println("Winner:\n"+server.getState());
-			nameLookup.release(server);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (LookupFailedException e) {
-			e.printStackTrace();
-		} catch (EstablishConnectionFailed e) {
+			connected = true; // if we reach this line, the connection should
+								// work
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
+		return connected;
+	}
+
+	private void gameLoop() {
+		Scanner sc = new Scanner(System.in);
+		int row, column, idx;
+
+		System.out.println(server.getStringBoard());
+
+		while (server.getState() == State.NOT_DONE) {
+			while (true) {
+				System.out.println("Enter a Turn");
+				idx = Integer.parseInt(sc.nextLine().trim());
+				row = (idx - 1) / 3;
+				column = (idx - 1) % 3;
+
+				if (server.place(row, column) == State.FIELD_NOT_EMPTY) {
+					System.out.println("Invalid turn: Field is not Empty.");
+				} else {
+					break;
+				}
+			}
+			System.out.println(server.getStringBoard());
+		}
+
+		sc.close();
 	}
 
 	public void callback(int[] move) {
