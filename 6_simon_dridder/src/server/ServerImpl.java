@@ -42,12 +42,13 @@ public class ServerImpl implements ServerInterface {
 		//    - - -
 		//    x - o
 		
+		board_str.append("\t");
 		for (int i = 0; i < board.length; i++) {
 			for (int j = 0; j < board[0].length; j++) {
 				board_str.append(board[i][j]);
 				board_str.append(" ");
 			}
-			board_str.append("\n");
+			board_str.append("\n\t");
 		}
 
 		return board_str.toString().replace(Character.forDigit(HUMAN, 10), 'x')
@@ -159,12 +160,13 @@ public class ServerImpl implements ServerInterface {
 	}
 
 	private void placeAI() {
-		int i, j;
+		int[] move = new int[2];
 		do {
-			i = (int) (Math.random() * 3);
-			j = (int) (Math.random() * 3);
-		} while (board[i][j] != NONE);
+			move[0] = (int) (Math.random() * 3);
+			move[1] = (int) (Math.random() * 3);
+		} while (board[move[0]][move[1]] != NONE);
 
-		board[i][j] = COMPUTER;
+		board[move[0]][move[1]] = COMPUTER;
+		client.callback(move);
 	}
 }
